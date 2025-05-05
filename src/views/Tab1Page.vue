@@ -25,30 +25,34 @@
           <div class="pet-name">{{ petStore.name }}</div>
           <div class="pet-message">{{ getPetMessage() }}</div>
         </div>
-        
-        <div class="pet-image-container" 
-          v-motion
-          :initial="{ scale: 0.8, opacity: 0 }"
+
+        <div class="pet-image-container" v-motion :initial="{ scale: 0.8, opacity: 0 }"
           :enter="{ scale: 1, opacity: 1 }">
           <img :src="`/resources/pet/${petStore.emotion}.jpg`" alt="Pet" class="pet-image" ref="petImage" />
+
+          <!-- Equipped Items -->
+          <div class="equipped-items">
+            <div v-for="item in equippedItems" :key="item.id" 
+                class="equipped-item" :class="[item.type]">
+              <ion-icon :icon="item.icon" />
+            </div>
+          </div>
         </div>
 
-        <div class="action-buttons"
-          v-motion
-          :initial="{ y: 50, opacity: 0 }"
+        <div class="action-buttons" v-motion :initial="{ y: 50, opacity: 0 }"
           :enter="{ y: 0, opacity: 1, transition: { delay: 300 } }">
           <ion-fab-button color="warning" @click="handleFeed" :disabled="petStore.hunger >= 100" class="action-button">
             <ion-icon :icon="restaurant"></ion-icon>
           </ion-fab-button>
-          
+
           <ion-fab-button color="success" @click="handlePlay" :disabled="petStore.energy < 20" class="action-button">
             <ion-icon :icon="playCircle"></ion-icon>
           </ion-fab-button>
-          
+
           <ion-fab-button color="primary" @click="handleSleep" class="action-button">
             <ion-icon :icon="bed"></ion-icon>
           </ion-fab-button>
-          
+
           <ion-fab-button color="danger" @click="handleHeal" :disabled="petStore.health >= 100" class="action-button">
             <ion-icon :icon="medkit"></ion-icon>
           </ion-fab-button>
@@ -62,11 +66,13 @@
 import { IonPage, IonContent, IonIcon, IonProgressBar, IonFabButton } from '@ionic/vue';
 import { restaurant, playCircle, bed, medkit, happy, batteryFull as battery, heart } from 'ionicons/icons';
 import { usePetStore } from '@/stores/pet';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import gsap from 'gsap';
 
 const petStore = usePetStore();
 const petImage = ref(null);
+
+const equippedItems = computed(() => petStore.equippedItems);
 
 function getPetMessage() {
   switch (petStore.emotion) {
@@ -135,11 +141,10 @@ onMounted(() => {
 <style scoped>
 .game-content {
   --background: var(--ion-background-color);
-  background: linear-gradient(145deg, 
-    var(--ion-color-primary-tint) 0%, 
-    var(--ion-color-primary) 35%,
-    var(--ion-background-color) 100%
-  );
+  background: linear-gradient(145deg,
+      var(--ion-color-primary-tint) 0%,
+      var(--ion-color-primary) 35%,
+      var(--ion-background-color) 100%);
 }
 
 .status-bar {
@@ -215,6 +220,7 @@ onMounted(() => {
   width: min(220px, 60vw);
   height: min(220px, 60vw);
   margin: 2rem auto;
+  position: relative;
 }
 
 .pet-image {
@@ -226,6 +232,65 @@ onMounted(() => {
   border: 4px solid var(--ion-color-light);
   background: rgba(var(--ion-background-color-rgb), 0.8);
   backdrop-filter: blur(8px);
+}
+
+.equipped-items {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.equipped-item {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--ion-color-light-rgb), 0.9);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.equipped-item ion-icon {
+  font-size: 20px;
+  color: var(--ion-color-primary);
+}
+
+.equipped-item.accessory {
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.equipped-item.outfit {
+  top: 50%;
+  left: -8px;
+  transform: translateY(-50%);
+}
+
+.equipped-item.decoration {
+  bottom: -8px;
+  right: -8px;
+}
+
+.equipped-item.background {
+  top: -8px;
+  right: -8px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .equipped-item {
+    background: rgba(var(--ion-color-medium-rgb), 0.9);
+  }
+
+  .equipped-item ion-icon {
+    color: var(--ion-color-light);
+  }
 }
 
 .action-buttons {
@@ -251,18 +316,24 @@ ion-fab-button:active {
 }
 
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-10px);
   }
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.05);
   }
@@ -273,7 +344,7 @@ ion-fab-button:active {
   .message-bubble {
     background: rgba(var(--ion-color-light-rgb), 0.15);
   }
-  
+
   .status-bar {
     background: rgba(var(--ion-background-color-rgb), 0.9);
   }
@@ -285,12 +356,12 @@ ion-fab-button:active {
     width: min(180px, 50vw);
     height: min(180px, 50vw);
   }
-  
+
   .action-buttons {
     gap: 0.75rem;
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   ion-fab-button {
     --size: 40px;
   }

@@ -23,6 +23,16 @@
           <ion-label>Stats</ion-label>
         </ion-tab-button>
 
+        <ion-tab-button tab="shop" href="/tabs/shop" class="tab-button"
+          v-motion
+          :initial="{ scale: 0.8, opacity: 0 }"
+          :enter="{ scale: 1, opacity: 1, transition: { delay: 150 } }">
+          <div class="tab-icon-container">
+            <ion-icon aria-hidden="true" :icon="cart" />
+          </div>
+          <ion-label>Shop</ion-label>
+        </ion-tab-button>
+
         <ion-tab-button tab="tab3" href="/tabs/tab3" class="tab-button"
           v-motion
           :initial="{ scale: 0.8, opacity: 0 }"
@@ -39,7 +49,7 @@
 
 <script setup lang="ts">
 import { IonTabBar, IonTabButton, IonTabs, IonLabel, IonIcon, IonPage, IonRouterOutlet } from '@ionic/vue';
-import { heart, statsChart, settings } from 'ionicons/icons';
+import { heart, statsChart, settings, cart } from 'ionicons/icons';
 </script>
 
 <style scoped>

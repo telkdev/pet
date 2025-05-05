@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia'
-import { ref, onUnmounted } from 'vue'
+import { ref, onUnmounted, computed } from 'vue'
 import { Storage } from '@ionic/storage'
 import { useAchievementsStore } from './achievements'
 import { useEvolutionStore } from './evolution'
+import { useItemsStore } from './items'
 
 type Emotion = 'happy' | 'sad' | 'angry' | 'cry' | 'dissatisfied' | 'joyful' | 'love' | 'satisfied' | 'upset'
 
@@ -23,6 +24,9 @@ export const usePetStore = defineStore('pet', () => {
 
   const achievementsStore = useAchievementsStore()
   const evolutionStore = useEvolutionStore()
+  const itemsStore = useItemsStore()
+
+  const equippedItems = computed(() => itemsStore.equippedItems)
 
   let cleanupLifeCycle: (() => void) | null = null
 
@@ -104,6 +108,17 @@ export const usePetStore = defineStore('pet', () => {
     return () => clearInterval(interval)
   }
 
+  function applyEquippedItemEffects() {
+    for (const item of equippedItems.value) {
+      if (item.effects) {
+        if (item.effects.hunger) hunger.value = Math.min(MAX_STAT, hunger.value + item.effects.hunger)
+        if (item.effects.happiness) happiness.value = Math.min(MAX_STAT, happiness.value + item.effects.happiness)
+        if (item.effects.energy) energy.value = Math.min(MAX_STAT, energy.value + item.effects.energy)
+        if (item.effects.health) health.value = Math.min(MAX_STAT, health.value + item.effects.health)
+      }
+    }
+  }
+
   function updateStats() {
     const now = new Date()
     const last = new Date(lastInteraction.value)
@@ -116,6 +131,9 @@ export const usePetStore = defineStore('pet', () => {
     if (hunger.value < 30 || happiness.value < 30) {
       health.value = Math.max(MIN_STAT, health.value - secondsPassed * 0.1)
     }
+    
+    // Apply effects from equipped items
+    applyEquippedItemEffects()
     
     lastInteraction.value = now.toISOString()
 
@@ -184,6 +202,9 @@ export const usePetStore = defineStore('pet', () => {
     energy.value = Math.max(MIN_STAT, energy.value - 20)
     hunger.value = Math.max(MIN_STAT, hunger.value - 10)
     
+    // Add coins when playing
+    itemsStore.addCoins(10)
+    
     // Add athletic experience when playing
     evolutionStore.addExperience(10, 'athletic')
     
@@ -237,6 +258,7 @@ export const usePetStore = defineStore('pet', () => {
     sleep,
     heal,
     save,
-    startLifeCycle  // Expose for testing
+    startLifeCycle,  // Expose for testing
+    equippedItems,
   }
 })

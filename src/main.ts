@@ -3,6 +3,9 @@ import { createPinia } from 'pinia'
 import { MotionPlugin } from '@vueuse/motion'
 import App from './App.vue'
 import router from './router';
+import { useItemsStore } from './stores/items';
+import { useEvolutionStore } from './stores/evolution';
+import { useAchievementsStore } from './stores/achievements';
 
 import { IonicVue } from '@ionic/vue';
 import { addIcons } from 'ionicons';
@@ -17,13 +20,28 @@ import {
   barbellOutline,
   bookOutline,
   peopleOutline,
-  diamondOutline
+  diamondOutline,
+  cart,
+  bag,
+  cash,
+  shirt,
+  home,
+  restaurant,
+  gameController,
+  planet,
+  glasses,
+  chevronUp,
+  chevronDown,
+  batteryFull,
+  fastFood,
+  bed,
+  sunny
 } from 'ionicons/icons';
 
 // Register Ionicons
 addIcons({
   'trophy': trophy,
-  'ribbon': ribbon,
+  'ribbon': ribbon,  // Single ribbon entry for both bow-tie and ribbon
   'star': star,
   'heart': heart,
   'diamond': diamond,
@@ -32,7 +50,23 @@ addIcons({
   'barbell-outline': barbellOutline,
   'book-outline': bookOutline,
   'people-outline': peopleOutline,
-  'diamond-outline': diamondOutline
+  'diamond-outline': diamondOutline,
+  'cart': cart,
+  'bag': bag,
+  'cash': cash,
+  'shirt': shirt,
+  'home': home,
+  'restaurant': restaurant,
+  'game-controller': gameController,
+  'planet': planet,
+  'glasses': glasses,
+  'chevron-up': chevronUp,
+  'chevron-down': chevronDown,
+  'battery': batteryFull,
+  'fast-food': fastFood,
+  'battery-full': batteryFull,
+  'bed': bed,
+  'sunny': sunny
 });
 
 /* Core CSS required for Ionic components to work properly */
@@ -72,6 +106,17 @@ const app = createApp(App)
   .use(router)
   .use(MotionPlugin);  // Add Motion plugin
 
-router.isReady().then(() => {
-  app.mount('#app');
+// Initialize stores
+const itemsStore = useItemsStore(pinia)
+const evolutionStore = useEvolutionStore(pinia)
+const achievementsStore = useAchievementsStore(pinia)
+
+Promise.all([
+  itemsStore.initialize(),
+  evolutionStore.initialize(),
+  achievementsStore.initialize()
+]).then(() => {
+  router.isReady().then(() => {
+    app.mount('#app');
+  });
 });
