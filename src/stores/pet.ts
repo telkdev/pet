@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { Storage } from '@ionic/storage'
+import { useAchievementsStore } from './achievements'
 
 type Emotion = 'happy' | 'sad' | 'angry' | 'cry' | 'dissatisfied' | 'joyful' | 'love' | 'satisfied' | 'upset'
 
@@ -14,6 +15,8 @@ export const usePetStore = defineStore('pet', () => {
   const health = ref(100)
   const lastInteraction = ref(new Date().toISOString())
   const emotion = ref<Emotion>('happy')
+
+  const achievementsStore = useAchievementsStore()
 
   let cleanupLifeCycle: (() => void) | null = null
 
@@ -31,6 +34,8 @@ export const usePetStore = defineStore('pet', () => {
       lastInteraction.value = savedState.lastInteraction
       emotion.value = savedState.emotion
     }
+    
+    await achievementsStore.initialize()
     
     // Clean up any existing interval
     if (cleanupLifeCycle) {
@@ -70,16 +75,31 @@ export const usePetStore = defineStore('pet', () => {
     const last = new Date(lastInteraction.value)
     const secondsPassed = (now.getTime() - last.getTime()) / 1000
     
-    // Adjusted rates for more frequent updates (per second instead of per minute)
-    hunger.value = Math.max(0, hunger.value - secondsPassed * 0.1)  // ~10% per minute
-    happiness.value = Math.max(0, happiness.value - secondsPassed * 0.08) // ~8% per minute
-    energy.value = Math.max(0, energy.value - secondsPassed * 0.05)  // ~5% per minute
+    hunger.value = Math.max(0, hunger.value - secondsPassed * 0.1)
+    happiness.value = Math.max(0, happiness.value - secondsPassed * 0.08)
+    energy.value = Math.max(0, energy.value - secondsPassed * 0.05)
     
     if (hunger.value < 30 || happiness.value < 30) {
-      health.value = Math.max(0, health.value - secondsPassed * 0.1)  // ~10% per minute when in bad condition
+      health.value = Math.max(0, health.value - secondsPassed * 0.1)
     }
     
     lastInteraction.value = now.toISOString()
+
+    // Check achievements
+    achievementsStore.checkDayStreak(now.toISOString())
+    achievementsStore.checkBalancedStats({
+      hunger: hunger.value,
+      happiness: happiness.value,
+      energy: energy.value,
+      health: health.value
+    })
+    achievementsStore.checkMoodStreak(emotion.value)
+    achievementsStore.checkPerfectDay({
+      hunger: hunger.value,
+      happiness: happiness.value,
+      energy: energy.value,
+      health: health.value
+    })
   }
 
   function updateEmotion() {
@@ -125,6 +145,10 @@ export const usePetStore = defineStore('pet', () => {
     happiness.value = Math.min(100, happiness.value + 20)
     energy.value = Math.max(0, energy.value - 20)
     hunger.value = Math.max(0, hunger.value - 10)
+    
+    // Check energy efficiency achievement when playing
+    achievementsStore.checkEnergyEfficiency(energy.value)
+    
     updateStats()
     updateEmotion()
     save()

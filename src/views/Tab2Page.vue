@@ -63,17 +63,61 @@
           </ion-label>
         </ion-item>
       </ion-list>
+
+      <ion-list>
+        <ion-list-header>
+          <ion-label>
+            <h1>Achievements</h1>
+          </ion-label>
+        </ion-list-header>
+
+        <ion-item v-for="achievement in achievementsStore.achievements" :key="achievement.id">
+          <ion-icon
+            :icon="achievement.icon"
+            slot="start"
+            :class="['achievement-icon', achievement.level, { unlocked: achievement.unlocked }]"
+          ></ion-icon>
+          <ion-label>
+            <h2>{{ achievement.name }}</h2>
+            <p>{{ achievement.description }}</p>
+            <ion-progress-bar
+              :value="achievement.progress / achievement.maxProgress"
+              :color="achievement.unlocked ? 'success' : 'primary'"
+            ></ion-progress-bar>
+            <p class="progress-text">{{ achievement.progress }}/{{ achievement.maxProgress }}</p>
+          </ion-label>
+          <ion-badge
+            slot="end"
+            :color="getBadgeColor(achievement.level)"
+            class="achievement-badge"
+          >
+            {{ achievement.level.charAt(0).toUpperCase() + achievement.level.slice(1) }}
+          </ion-badge>
+        </ion-item>
+      </ion-list>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, 
-         IonLabel, IonButton, IonIcon, IonProgressBar, alertController } from '@ionic/vue';
+         IonLabel, IonButton, IonIcon, IonProgressBar, alertController, IonListHeader,
+         IonBadge } from '@ionic/vue';
 import { pencil } from 'ionicons/icons';
 import { usePetStore } from '@/stores/pet';
+import { useAchievementsStore } from '@/stores/achievements';
 
 const petStore = usePetStore();
+const achievementsStore = useAchievementsStore();
+
+function getBadgeColor(level: string): string {
+  switch (level) {
+    case 'bronze': return 'warning';
+    case 'silver': return 'medium';
+    case 'gold': return 'warning';
+    default: return 'primary';
+  }
+}
 
 async function showNamePrompt() {
   const alert = await alertController.create({
@@ -110,5 +154,41 @@ async function showNamePrompt() {
 <style scoped>
 ion-progress-bar {
   margin: 8px 0;
+}
+
+.achievement-icon {
+  font-size: 24px;
+  opacity: 0.5;
+}
+
+.achievement-icon.unlocked {
+  opacity: 1;
+}
+
+.achievement-icon.bronze {
+  color: #cd7f32;
+}
+
+.achievement-icon.silver {
+  color: #c0c0c0;
+}
+
+.achievement-icon.gold {
+  color: #ffd700;
+}
+
+.progress-text {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.achievement-badge {
+  text-transform: capitalize;
+}
+
+ion-list-header h1 {
+  font-size: 20px;
+  font-weight: bold;
+  margin: 0;
 }
 </style>
