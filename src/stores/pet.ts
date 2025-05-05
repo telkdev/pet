@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, onUnmounted } from 'vue'
 import { Storage } from '@ionic/storage'
 import { useAchievementsStore } from './achievements'
 import { useEvolutionStore } from './evolution'
@@ -7,15 +7,19 @@ import { useEvolutionStore } from './evolution'
 type Emotion = 'happy' | 'sad' | 'angry' | 'cry' | 'dissatisfied' | 'joyful' | 'love' | 'satisfied' | 'upset'
 
 const HOUR_IN_MS = 3600000 // 1 hour in milliseconds
+const MIN_STAT = 0
+const MAX_STAT = 100
 
 export const usePetStore = defineStore('pet', () => {
   const name = ref('My Pet')
-  const hunger = ref(100)
-  const happiness = ref(100)
-  const energy = ref(100)
-  const health = ref(100)
+  const hunger = ref(MAX_STAT)
+  const happiness = ref(MAX_STAT)
+  const energy = ref(MAX_STAT)
+  const health = ref(MAX_STAT)
   const lastInteraction = ref(new Date().toISOString())
   const emotion = ref<Emotion>('happy')
+  const isInitialized = ref(false)
+  const error = ref<string | null>(null)
 
   const achievementsStore = useAchievementsStore()
   const evolutionStore = useEvolutionStore()
@@ -23,48 +27,71 @@ export const usePetStore = defineStore('pet', () => {
   let cleanupLifeCycle: (() => void) | null = null
 
   async function initialize() {
-    const storage = new Storage()
-    await storage.create()
-    
-    const savedState = await storage.get('petState')
-    if (savedState) {
-      name.value = savedState.name
-      hunger.value = savedState.hunger
-      happiness.value = savedState.happiness
-      energy.value = savedState.energy
-      health.value = savedState.health
-      lastInteraction.value = savedState.lastInteraction
-      emotion.value = savedState.emotion
+    try {
+      const storage = new Storage()
+      await storage.create()
+      
+      const savedState = await storage.get('petState')
+      if (savedState) {
+        name.value = savedState.name
+        hunger.value = Number(savedState.hunger)
+        happiness.value = Number(savedState.happiness)
+        energy.value = Number(savedState.energy)
+        health.value = Number(savedState.health)
+        lastInteraction.value = savedState.lastInteraction
+        emotion.value = savedState.emotion
+      }
+      
+      await Promise.all([
+        achievementsStore.initialize(),
+        evolutionStore.initialize()
+      ])
+
+      // Clean up any existing interval
+      cleanup()
+      
+      // Start new lifecycle and store cleanup function
+      cleanupLifeCycle = startLifeCycle()
+      isInitialized.value = true
+      error.value = null
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Failed to initialize pet'
+      throw e
     }
-    
-    await achievementsStore.initialize()
-    await evolutionStore.initialize()
-    
-    // Clean up any existing interval
-    if (cleanupLifeCycle) {
-      cleanupLifeCycle()
-    }
-    
-    // Start new lifecycle and store cleanup function
-    cleanupLifeCycle = startLifeCycle()
   }
 
-  async function save() {
-    const storage = new Storage()
-    await storage.create()
-    
-    // Create a serializable state object
-    const serializableState = {
-      name: name.value,
-      hunger: Number(hunger.value),
-      happiness: Number(happiness.value),
-      energy: Number(energy.value),
-      health: Number(health.value),
-      lastInteraction: lastInteraction.value,
-      emotion: emotion.value
+  function cleanup() {
+    if (cleanupLifeCycle) {
+      cleanupLifeCycle()
+      cleanupLifeCycle = null
     }
-    
-    await storage.set('petState', JSON.parse(JSON.stringify(serializableState)))
+  }
+
+  // Ensure cleanup on store disposal
+  onUnmounted(cleanup)
+
+  async function save() {
+    try {
+      const storage = new Storage()
+      await storage.create()
+      
+      // Create a serializable state object with validated numbers
+      const serializableState = {
+        name: name.value,
+        hunger: Math.min(MAX_STAT, Math.max(MIN_STAT, Number(hunger.value))),
+        happiness: Math.min(MAX_STAT, Math.max(MIN_STAT, Number(happiness.value))),
+        energy: Math.min(MAX_STAT, Math.max(MIN_STAT, Number(energy.value))),
+        health: Math.min(MAX_STAT, Math.max(MIN_STAT, Number(health.value))),
+        lastInteraction: lastInteraction.value,
+        emotion: emotion.value
+      }
+      
+      await storage.set('petState', JSON.parse(JSON.stringify(serializableState)))
+      error.value = null
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Failed to save pet state'
+      throw e
+    }
   }
 
   function startLifeCycle(intervalMs: number = HOUR_IN_MS) {
@@ -82,12 +109,12 @@ export const usePetStore = defineStore('pet', () => {
     const last = new Date(lastInteraction.value)
     const secondsPassed = (now.getTime() - last.getTime()) / 1000
     
-    hunger.value = Math.max(0, hunger.value - secondsPassed * 0.1)
-    happiness.value = Math.max(0, happiness.value - secondsPassed * 0.08)
-    energy.value = Math.max(0, energy.value - secondsPassed * 0.05)
+    hunger.value = Math.max(MIN_STAT, hunger.value - secondsPassed * 0.1)
+    happiness.value = Math.max(MIN_STAT, happiness.value - secondsPassed * 0.08)
+    energy.value = Math.max(MIN_STAT, energy.value - secondsPassed * 0.05)
     
     if (hunger.value < 30 || happiness.value < 30) {
-      health.value = Math.max(0, health.value - secondsPassed * 0.1)
+      health.value = Math.max(MIN_STAT, health.value - secondsPassed * 0.1)
     }
     
     lastInteraction.value = now.toISOString()
@@ -139,9 +166,9 @@ export const usePetStore = defineStore('pet', () => {
   }
 
   function feed() {
-    if (hunger.value >= 100) return
-    hunger.value = Math.min(100, hunger.value + 30)
-    energy.value = Math.max(0, energy.value - 5)
+    if (hunger.value >= MAX_STAT) return
+    hunger.value = Math.min(MAX_STAT, hunger.value + 30)
+    energy.value = Math.max(MIN_STAT, energy.value - 5)
     
     // Add balanced experience when feeding
     evolutionStore.addExperience(5, 'balanced')
@@ -153,9 +180,9 @@ export const usePetStore = defineStore('pet', () => {
 
   function play() {
     if (energy.value < 20) return
-    happiness.value = Math.min(100, happiness.value + 20)
-    energy.value = Math.max(0, energy.value - 20)
-    hunger.value = Math.max(0, hunger.value - 10)
+    happiness.value = Math.min(MAX_STAT, happiness.value + 20)
+    energy.value = Math.max(MIN_STAT, energy.value - 20)
+    hunger.value = Math.max(MIN_STAT, hunger.value - 10)
     
     // Add athletic experience when playing
     evolutionStore.addExperience(10, 'athletic')
@@ -169,8 +196,8 @@ export const usePetStore = defineStore('pet', () => {
   }
 
   function sleep() {
-    energy.value = Math.min(100, energy.value + 50)
-    hunger.value = Math.max(0, hunger.value - 20)
+    energy.value = Math.min(MAX_STAT, energy.value + 50)
+    hunger.value = Math.max(MIN_STAT, hunger.value - 20)
     
     // Add balanced experience when sleeping
     evolutionStore.addExperience(8, 'balanced')
@@ -181,9 +208,9 @@ export const usePetStore = defineStore('pet', () => {
   }
 
   function heal() {
-    if (health.value >= 100) return
-    health.value = Math.min(100, health.value + 30)
-    energy.value = Math.max(0, energy.value - 10)
+    if (health.value >= MAX_STAT) return
+    health.value = Math.min(MAX_STAT, health.value + 30)
+    energy.value = Math.max(MIN_STAT, energy.value - 10)
     
     // Add intellectual experience when healing
     evolutionStore.addExperience(15, 'intellectual')
@@ -201,7 +228,10 @@ export const usePetStore = defineStore('pet', () => {
     health,
     lastInteraction,
     emotion,
+    isInitialized,
+    error,
     initialize,
+    cleanup,
     feed,
     play,
     sleep,

@@ -2,17 +2,36 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { Storage } from '@ionic/storage'
 
+export type AchievementLevel = 'bronze' | 'silver' | 'gold'
+
 export interface Achievement {
   id: string;
   name: string;
   description: string;
-  level: 'bronze' | 'silver' | 'gold';
+  level: AchievementLevel;
   icon: string;
   progress: number;
   maxProgress: number;
   unlocked: boolean;
-  unlockedAt?: string;
+  unlockedAt: string | null;  // Changed from optional to nullable
 }
+
+// Achievement categories for type safety
+export type AchievementCategory = 
+  | 'care-streak'
+  | 'balanced-stats'
+  | 'mood-master'
+  | 'energy-efficient'
+  | 'perfect-day'
+  | 'milestone';
+
+interface AchievementsState {
+  achievements: Achievement[];
+  streak: number;
+  lastDayInteracted: string | null;
+}
+
+const MIN_PROGRESS = 0;
 
 export const useAchievementsStore = defineStore('achievements', () => {
   const achievements = ref<Achievement[]>([
@@ -24,7 +43,8 @@ export const useAchievementsStore = defineStore('achievements', () => {
       icon: 'trophy',
       progress: 0,
       maxProgress: 3,
-      unlocked: false
+      unlocked: false,
+      unlockedAt: null
     },
     {
       id: 'care-streak-silver',
@@ -34,7 +54,8 @@ export const useAchievementsStore = defineStore('achievements', () => {
       icon: 'trophy',
       progress: 0,
       maxProgress: 7,
-      unlocked: false
+      unlocked: false,
+      unlockedAt: null
     },
     {
       id: 'care-streak-gold',
@@ -44,7 +65,8 @@ export const useAchievementsStore = defineStore('achievements', () => {
       icon: 'trophy',
       progress: 0,
       maxProgress: 30,
-      unlocked: false
+      unlocked: false,
+      unlockedAt: null
     },
     {
       id: 'balanced-stats-bronze',
@@ -54,7 +76,8 @@ export const useAchievementsStore = defineStore('achievements', () => {
       icon: 'ribbon',
       progress: 0,
       maxProgress: 1,
-      unlocked: false
+      unlocked: false,
+      unlockedAt: null
     },
     {
       id: 'balanced-stats-silver',
@@ -64,7 +87,8 @@ export const useAchievementsStore = defineStore('achievements', () => {
       icon: 'ribbon',
       progress: 0,
       maxProgress: 2,
-      unlocked: false
+      unlocked: false,
+      unlockedAt: null
     },
     {
       id: 'balanced-stats-gold',
@@ -74,7 +98,8 @@ export const useAchievementsStore = defineStore('achievements', () => {
       icon: 'ribbon',
       progress: 0,
       maxProgress: 1,
-      unlocked: false
+      unlocked: false,
+      unlockedAt: null
     },
     {
       id: 'mood-master-bronze',
@@ -84,7 +109,8 @@ export const useAchievementsStore = defineStore('achievements', () => {
       icon: 'heart',
       progress: 0,
       maxProgress: 1,
-      unlocked: false
+      unlocked: false,
+      unlockedAt: null
     },
     {
       id: 'mood-master-silver',
@@ -94,7 +120,8 @@ export const useAchievementsStore = defineStore('achievements', () => {
       icon: 'heart',
       progress: 0,
       maxProgress: 4,
-      unlocked: false
+      unlocked: false,
+      unlockedAt: null
     },
     {
       id: 'mood-master-gold',
@@ -104,7 +131,8 @@ export const useAchievementsStore = defineStore('achievements', () => {
       icon: 'heart',
       progress: 0,
       maxProgress: 8,
-      unlocked: false
+      unlocked: false,
+      unlockedAt: null
     },
     {
       id: 'energy-efficient-bronze',
@@ -114,7 +142,8 @@ export const useAchievementsStore = defineStore('achievements', () => {
       icon: 'flash',
       progress: 0,
       maxProgress: 3,
-      unlocked: false
+      unlocked: false,
+      unlockedAt: null
     },
     {
       id: 'energy-efficient-silver',
@@ -124,7 +153,8 @@ export const useAchievementsStore = defineStore('achievements', () => {
       icon: 'flash',
       progress: 0,
       maxProgress: 10,
-      unlocked: false
+      unlocked: false,
+      unlockedAt: null
     },
     {
       id: 'energy-efficient-gold',
@@ -134,7 +164,8 @@ export const useAchievementsStore = defineStore('achievements', () => {
       icon: 'flash',
       progress: 0,
       maxProgress: 20,
-      unlocked: false
+      unlocked: false,
+      unlockedAt: null
     },
     {
       id: 'perfect-day-bronze',
@@ -144,7 +175,8 @@ export const useAchievementsStore = defineStore('achievements', () => {
       icon: 'star',
       progress: 0,
       maxProgress: 4,
-      unlocked: false
+      unlocked: false,
+      unlockedAt: null
     },
     {
       id: 'perfect-day-silver',
@@ -154,7 +186,8 @@ export const useAchievementsStore = defineStore('achievements', () => {
       icon: 'star',
       progress: 0,
       maxProgress: 12,
-      unlocked: false
+      unlocked: false,
+      unlockedAt: null
     },
     {
       id: 'perfect-day-gold',
@@ -164,7 +197,8 @@ export const useAchievementsStore = defineStore('achievements', () => {
       icon: 'star',
       progress: 0,
       maxProgress: 168,
-      unlocked: false
+      unlocked: false,
+      unlockedAt: null
     },
     {
       id: 'milestone-bronze',
@@ -174,7 +208,8 @@ export const useAchievementsStore = defineStore('achievements', () => {
       icon: 'medal',
       progress: 0,
       maxProgress: 5,
-      unlocked: false
+      unlocked: false,
+      unlockedAt: null
     },
     {
       id: 'milestone-silver',
@@ -184,7 +219,8 @@ export const useAchievementsStore = defineStore('achievements', () => {
       icon: 'medal',
       progress: 0,
       maxProgress: 15,
-      unlocked: false
+      unlocked: false,
+      unlockedAt: null
     },
     {
       id: 'milestone-gold',
@@ -194,198 +230,277 @@ export const useAchievementsStore = defineStore('achievements', () => {
       icon: 'diamond',
       progress: 0,
       maxProgress: 17,
-      unlocked: false
+      unlocked: false,
+      unlockedAt: null
     }
   ]);
 
   const streak = ref(0);
   const lastDayInteracted = ref<string | null>(null);
+  const error = ref<string | null>(null);
+  const isInitialized = ref(false);
 
   const unlockedAchievements = computed(() => 
     achievements.value.filter(a => a.unlocked)
   );
 
   async function initialize() {
-    const storage = new Storage();
-    await storage.create();
-    
-    const savedState = await storage.get('achievementsState');
-    if (savedState) {
-      achievements.value = savedState.achievements;
-      streak.value = savedState.streak;
-      lastDayInteracted.value = savedState.lastDayInteracted;
+    try {
+      const storage = new Storage();
+      await storage.create();
+      
+      const savedState = await storage.get('achievementsState');
+      if (savedState) {
+        achievements.value = savedState.achievements.map((achievement: Achievement) => ({
+          ...achievement,
+          progress: Math.max(MIN_PROGRESS, Number(achievement.progress)),
+          maxProgress: Math.max(MIN_PROGRESS, Number(achievement.maxProgress))
+        }));
+        streak.value = Math.max(MIN_PROGRESS, Number(savedState.streak));
+        lastDayInteracted.value = savedState.lastDayInteracted;
+      }
+      isInitialized.value = true;
+      error.value = null;
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Failed to initialize achievements';
+      throw e;
     }
   }
 
   async function save() {
-    const storage = new Storage();
-    await storage.create();
-    
-    // Create a serializable state object
-    const serializableState = {
-      achievements: achievements.value.map(achievement => ({
-        ...achievement,
-        unlockedAt: achievement.unlockedAt || null,
-        progress: Number(achievement.progress),
-        maxProgress: Number(achievement.maxProgress)
-      })),
-      streak: Number(streak.value),
-      lastDayInteracted: lastDayInteracted.value || null
-    };
-    
-    await storage.set('achievementsState', JSON.parse(JSON.stringify(serializableState)));
+    try {
+      if (!isInitialized.value) {
+        throw new Error('Achievements store not initialized');
+      }
+
+      const storage = new Storage();
+      await storage.create();
+      
+      const serializableState: AchievementsState = {
+        achievements: achievements.value.map(achievement => ({
+          ...achievement,
+          progress: Math.max(MIN_PROGRESS, Number(achievement.progress)),
+          maxProgress: Math.max(MIN_PROGRESS, Number(achievement.maxProgress))
+        })),
+        streak: Math.max(MIN_PROGRESS, Number(streak.value)),
+        lastDayInteracted: lastDayInteracted.value
+      };
+      
+      await storage.set('achievementsState', JSON.parse(JSON.stringify(serializableState)));
+      error.value = null;
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Failed to save achievements';
+      throw e;
+    }
+  }
+
+  function getAchievementsByCategory(category: AchievementCategory): Achievement[] {
+    return achievements.value.filter(a => a.id.startsWith(category));
+  }
+
+  function updateAchievementProgress(achievement: Achievement, newProgress: number) {
+    achievement.progress = Math.min(achievement.maxProgress, Math.max(MIN_PROGRESS, newProgress));
+    if (achievement.progress >= achievement.maxProgress && !achievement.unlocked) {
+      unlockAchievement(achievement.id);
+    }
   }
 
   function checkDayStreak(currentDate: string) {
-    const today = new Date(currentDate).toDateString();
-    
-    if (!lastDayInteracted.value) {
-      streak.value = 1;
-    } else {
-      const lastDay = new Date(lastDayInteracted.value).toDateString();
-      const dayDiff = Math.floor((new Date(today).getTime() - new Date(lastDay).getTime()) / (1000 * 60 * 60 * 24));
-      
-      if (dayDiff === 1) {
-        streak.value++;
-      } else if (dayDiff > 1) {
-        streak.value = 1;
+    try {
+      if (!isInitialized.value) {
+        throw new Error('Achievements store not initialized');
       }
+
+      const today = new Date(currentDate).toDateString();
+      
+      if (!lastDayInteracted.value) {
+        streak.value = 1;
+      } else {
+        const lastDay = new Date(lastDayInteracted.value).toDateString();
+        const dayDiff = Math.floor(
+          (new Date(today).getTime() - new Date(lastDay).getTime()) / (1000 * 60 * 60 * 24)
+        );
+        
+        streak.value = dayDiff === 1 ? streak.value + 1 : 1;
+      }
+      
+      lastDayInteracted.value = today;
+      updateStreakAchievements();
+      save();
+      error.value = null;
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Failed to check day streak';
+      throw e;
     }
-    
-    lastDayInteracted.value = today;
-    updateStreakAchievements();
-    save();
   }
 
   function updateStreakAchievements() {
-    const streakAchievements = achievements.value.filter(a => a.id.startsWith('care-streak'));
+    const streakAchievements = getAchievementsByCategory('care-streak');
     for (const achievement of streakAchievements) {
-      achievement.progress = Math.min(streak.value, achievement.maxProgress);
-      if (achievement.progress >= achievement.maxProgress && !achievement.unlocked) {
-        unlockAchievement(achievement.id);
-      }
+      updateAchievementProgress(achievement, streak.value);
     }
   }
 
   function checkBalancedStats(stats: { hunger: number; happiness: number; energy: number; health: number }) {
-    const allStatsAbove90 = Object.values(stats).every(stat => stat > 90);
-    const allStatsAbove70 = Object.values(stats).every(stat => stat > 70);
-    const allStatsAbove50 = Object.values(stats).every(stat => stat > 50);
+    try {
+      if (!isInitialized.value) {
+        throw new Error('Achievements store not initialized');
+      }
 
-    if (allStatsAbove90) {
-      const achievement = achievements.value.find(a => a.id === 'balanced-stats-gold');
-      if (achievement && !achievement.unlocked) {
-        achievement.progress = Math.min(achievement.progress + 1, achievement.maxProgress);
-        if (achievement.progress >= achievement.maxProgress) {
-          unlockAchievement(achievement.id);
+      const allStatsAbove90 = Object.values(stats).every(stat => stat > 90);
+      const allStatsAbove70 = Object.values(stats).every(stat => stat > 70);
+      const allStatsAbove50 = Object.values(stats).every(stat => stat > 50);
+
+      if (allStatsAbove90) {
+        const achievement = achievements.value.find(a => a.id === 'balanced-stats-gold');
+        if (achievement && !achievement.unlocked) {
+          updateAchievementProgress(achievement, achievement.progress + 1);
+        }
+      } else if (allStatsAbove70) {
+        const achievement = achievements.value.find(a => a.id === 'balanced-stats-silver');
+        if (achievement && !achievement.unlocked) {
+          updateAchievementProgress(achievement, achievement.progress + 1);
+        }
+      } else if (allStatsAbove50) {
+        const achievement = achievements.value.find(a => a.id === 'balanced-stats-bronze');
+        if (achievement && !achievement.unlocked) {
+          updateAchievementProgress(achievement, achievement.progress + 1);
         }
       }
-    } else if (allStatsAbove70) {
-      const achievement = achievements.value.find(a => a.id === 'balanced-stats-silver');
-      if (achievement && !achievement.unlocked) {
-        achievement.progress = Math.min(achievement.progress + 1, achievement.maxProgress);
-        if (achievement.progress >= achievement.maxProgress) {
-          unlockAchievement(achievement.id);
-        }
-      }
-    } else if (allStatsAbove50) {
-      const achievement = achievements.value.find(a => a.id === 'balanced-stats-bronze');
-      if (achievement && !achievement.unlocked) {
-        achievement.progress = Math.min(achievement.progress + 1, achievement.maxProgress);
-        if (achievement.progress >= achievement.maxProgress) {
-          unlockAchievement(achievement.id);
-        }
-      }
+      save();
+      error.value = null;
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Failed to check balanced stats';
+      throw e;
     }
-    save();
   }
 
   function checkMoodStreak(mood: string) {
-    const isSuperHappy = mood === 'joyful' || mood === 'love';
-    const moodAchievements = achievements.value.filter(a => a.id.startsWith('mood-master'));
-    
-    if (isSuperHappy) {
-      for (const achievement of moodAchievements) {
-        if (!achievement.unlocked) {
-          achievement.progress = Math.min(achievement.progress + 1, achievement.maxProgress);
-          if (achievement.progress >= achievement.maxProgress) {
-            unlockAchievement(achievement.id);
+    try {
+      if (!isInitialized.value) {
+        throw new Error('Achievements store not initialized');
+      }
+
+      const isSuperHappy = mood === 'joyful' || mood === 'love';
+      const moodAchievements = getAchievementsByCategory('mood-master');
+      
+      if (isSuperHappy) {
+        for (const achievement of moodAchievements) {
+          if (!achievement.unlocked) {
+            updateAchievementProgress(achievement, achievement.progress + 1);
           }
         }
+      } else {
+        moodAchievements.forEach(a => {
+          if (!a.unlocked) a.progress = MIN_PROGRESS;
+        });
       }
-    } else {
-      moodAchievements.forEach(a => {
-        if (!a.unlocked) a.progress = 0;
-      });
+      save();
+      error.value = null;
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Failed to check mood streak';
+      throw e;
     }
-    save();
   }
 
   function checkEnergyEfficiency(energy: number) {
-    const energyAchievements = achievements.value.filter(a => a.id.startsWith('energy-efficient'));
-    
-    if (energy > 80) {
-      for (const achievement of energyAchievements) {
-        if (!achievement.unlocked) {
-          achievement.progress = Math.min(achievement.progress + 1, achievement.maxProgress);
-          if (achievement.progress >= achievement.maxProgress) {
-            unlockAchievement(achievement.id);
+    try {
+      if (!isInitialized.value) {
+        throw new Error('Achievements store not initialized');
+      }
+
+      const energyAchievements = getAchievementsByCategory('energy-efficient');
+      
+      if (energy > 80) {
+        for (const achievement of energyAchievements) {
+          if (!achievement.unlocked) {
+            updateAchievementProgress(achievement, achievement.progress + 1);
           }
         }
       }
+      save();
+      error.value = null;
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Failed to check energy efficiency';
+      throw e;
     }
-    save();
   }
 
   function checkPerfectDay(stats: { hunger: number; happiness: number; energy: number; health: number }) {
-    const allStatsAbove90 = Object.values(stats).every(stat => stat > 90);
-    const perfectDayAchievements = achievements.value.filter(a => a.id.startsWith('perfect-day'));
-    
-    if (allStatsAbove90) {
-      for (const achievement of perfectDayAchievements) {
-        if (!achievement.unlocked) {
-          achievement.progress = Math.min(achievement.progress + 1, achievement.maxProgress);
-          if (achievement.progress >= achievement.maxProgress) {
-            unlockAchievement(achievement.id);
+    try {
+      if (!isInitialized.value) {
+        throw new Error('Achievements store not initialized');
+      }
+
+      const allStatsAbove90 = Object.values(stats).every(stat => stat > 90);
+      const perfectDayAchievements = getAchievementsByCategory('perfect-day');
+      
+      if (allStatsAbove90) {
+        for (const achievement of perfectDayAchievements) {
+          if (!achievement.unlocked) {
+            updateAchievementProgress(achievement, achievement.progress + 1);
           }
         }
+      } else {
+        perfectDayAchievements.forEach(a => {
+          if (!a.unlocked) a.progress = MIN_PROGRESS;
+        });
       }
-    } else {
-      perfectDayAchievements.forEach(a => {
-        if (!a.unlocked) a.progress = 0;
-      });
+      save();
+      error.value = null;
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Failed to check perfect day';
+      throw e;
     }
-    save();
   }
 
   function checkMilestones() {
-    const totalUnlocked = achievements.value.filter(a => a.unlocked && !a.id.startsWith('milestone')).length;
-    const milestoneAchievements = achievements.value.filter(a => a.id.startsWith('milestone'));
-    
-    for (const achievement of milestoneAchievements) {
-      achievement.progress = Math.min(totalUnlocked, achievement.maxProgress);
-      if (achievement.progress >= achievement.maxProgress && !achievement.unlocked) {
-        unlockAchievement(achievement.id);
+    try {
+      if (!isInitialized.value) {
+        throw new Error('Achievements store not initialized');
       }
+
+      const totalUnlocked = achievements.value.filter(a => a.unlocked && !a.id.startsWith('milestone')).length;
+      const milestoneAchievements = getAchievementsByCategory('milestone');
+      
+      for (const achievement of milestoneAchievements) {
+        updateAchievementProgress(achievement, totalUnlocked);
+      }
+      save();
+      error.value = null;
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Failed to check milestones';
+      throw e;
     }
-    save();
   }
 
   function unlockAchievement(id: string) {
-    const achievement = achievements.value.find(a => a.id === id);
-    if (achievement && !achievement.unlocked) {
-      achievement.unlocked = true;
-      achievement.unlockedAt = new Date().toISOString();
-      if (!id.startsWith('milestone')) {
-        checkMilestones();
+    try {
+      if (!isInitialized.value) {
+        throw new Error('Achievements store not initialized');
       }
-      save();
+
+      const achievement = achievements.value.find(a => a.id === id);
+      if (achievement && !achievement.unlocked) {
+        achievement.unlocked = true;
+        achievement.unlockedAt = new Date().toISOString();
+        if (!id.startsWith('milestone')) {
+          checkMilestones();
+        }
+        save();
+      }
+      error.value = null;
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Failed to unlock achievement';
+      throw e;
     }
   }
 
   return {
     achievements,
     unlockedAchievements,
+    isInitialized,
+    error,
     initialize,
     checkDayStreak,
     checkBalancedStats,
