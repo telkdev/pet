@@ -28,7 +28,7 @@
 
         <div class="pet-image-container" v-motion :initial="{ scale: 0.8, opacity: 0 }"
           :enter="{ scale: 1, opacity: 1 }">
-          <img :src="`/resources/pet/${petStore.emotion}.jpg`" alt="Pet" class="pet-image" ref="petImage" />
+          <img :src="getPetImage()" alt="Pet" class="pet-image" ref="petImage" />
 
           <!-- Equipped Items -->
           <div class="equipped-items">
@@ -87,6 +87,11 @@ function getPetMessage() {
     case 'cry': return '🤒 I don\'t feel well...';
     default: return '😊 Hi there!';
   }
+}
+
+function getPetImage() {
+  const imagePath = new URL(`../assets/pet/${petStore.emotion}.jpg`, import.meta.url).href;
+  return imagePath;
 }
 
 // Animation handlers
