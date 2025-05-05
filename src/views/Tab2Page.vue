@@ -19,6 +19,30 @@
 
         <ion-item>
           <ion-label>
+            <h2>Evolution Status</h2>
+            <div class="evolution-info">
+              <p>Stage: {{ formatEvolutionStage(evolutionStore.stage) }}</p>
+              <p>Path: {{ formatEvolutionPath(evolutionStore.path) }}</p>
+            </div>
+            <div class="level-info">
+              <p>Level {{ evolutionStore.level }}</p>
+              <ion-progress-bar 
+                :value="evolutionStore.experience / evolutionStore.experienceForNextLevel" 
+                color="tertiary"
+              ></ion-progress-bar>
+              <p class="xp-text">XP: {{ evolutionStore.experience }}/{{ evolutionStore.experienceForNextLevel }}</p>
+            </div>
+          </ion-label>
+          <ion-icon 
+            :icon="getEvolutionIcon(evolutionStore.path)" 
+            slot="end" 
+            size="large"
+            :class="['evolution-icon', evolutionStore.path]"
+          ></ion-icon>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>
             <h2>Current Mood</h2>
             <p>{{ petStore.emotion.charAt(0).toUpperCase() + petStore.emotion.slice(1) }}</p>
           </ion-label>
@@ -103,12 +127,15 @@
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, 
          IonLabel, IonButton, IonIcon, IonProgressBar, alertController, IonListHeader,
          IonBadge } from '@ionic/vue';
-import { pencil } from 'ionicons/icons';
+import { pencil, barbellOutline, bookOutline, peopleOutline, diamondOutline } from 'ionicons/icons';
 import { usePetStore } from '@/stores/pet';
 import { useAchievementsStore } from '@/stores/achievements';
+import { useEvolutionStore } from '@/stores/evolution';
+import type { EvolutionPath, EvolutionStage } from '@/stores/evolution';
 
 const petStore = usePetStore();
 const achievementsStore = useAchievementsStore();
+const evolutionStore = useEvolutionStore();
 
 function getBadgeColor(level: string): string {
   switch (level) {
@@ -148,6 +175,36 @@ async function showNamePrompt() {
   });
 
   await alert.present();
+}
+
+function formatEvolutionStage(stage: EvolutionStage): string {
+  const stages = {
+    baby: 'Baby',
+    child: 'Child',
+    teen: 'Teen',
+    adult: 'Adult'
+  };
+  return stages[stage];
+}
+
+function formatEvolutionPath(path: EvolutionPath): string {
+  const paths = {
+    athletic: 'Athletic',
+    intellectual: 'Intellectual',
+    social: 'Social',
+    balanced: 'Balanced'
+  };
+  return paths[path];
+}
+
+function getEvolutionIcon(path: EvolutionPath): string {
+  const icons = {
+    athletic: barbellOutline,
+    intellectual: bookOutline,
+    social: peopleOutline,
+    balanced: diamondOutline
+  };
+  return icons[path];
 }
 </script>
 
@@ -190,5 +247,42 @@ ion-list-header h1 {
   font-size: 20px;
   font-weight: bold;
   margin: 0;
+}
+
+.evolution-info {
+  margin: 8px 0;
+}
+
+.evolution-info p {
+  margin: 4px 0;
+}
+
+.level-info {
+  margin: 8px 0;
+}
+
+.xp-text {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.evolution-icon {
+  font-size: 32px;
+}
+
+.evolution-icon.athletic {
+  color: #ff4961;
+}
+
+.evolution-icon.intellectual {
+  color: #3880ff;
+}
+
+.evolution-icon.social {
+  color: #2dd36f;
+}
+
+.evolution-icon.balanced {
+  color: #92949c;
 }
 </style>

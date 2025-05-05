@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { Storage } from '@ionic/storage'
 import { useAchievementsStore } from './achievements'
+import { useEvolutionStore } from './evolution'
 
 type Emotion = 'happy' | 'sad' | 'angry' | 'cry' | 'dissatisfied' | 'joyful' | 'love' | 'satisfied' | 'upset'
 
@@ -17,6 +18,7 @@ export const usePetStore = defineStore('pet', () => {
   const emotion = ref<Emotion>('happy')
 
   const achievementsStore = useAchievementsStore()
+  const evolutionStore = useEvolutionStore()
 
   let cleanupLifeCycle: (() => void) | null = null
 
@@ -36,6 +38,7 @@ export const usePetStore = defineStore('pet', () => {
     }
     
     await achievementsStore.initialize()
+    await evolutionStore.initialize()
     
     // Clean up any existing interval
     if (cleanupLifeCycle) {
@@ -49,15 +52,19 @@ export const usePetStore = defineStore('pet', () => {
   async function save() {
     const storage = new Storage()
     await storage.create()
-    await storage.set('petState', {
+    
+    // Create a serializable state object
+    const serializableState = {
       name: name.value,
-      hunger: hunger.value,
-      happiness: happiness.value,
-      energy: energy.value,
-      health: health.value,
+      hunger: Number(hunger.value),
+      happiness: Number(happiness.value),
+      energy: Number(energy.value),
+      health: Number(health.value),
       lastInteraction: lastInteraction.value,
       emotion: emotion.value
-    })
+    }
+    
+    await storage.set('petState', JSON.parse(JSON.stringify(serializableState)))
   }
 
   function startLifeCycle(intervalMs: number = HOUR_IN_MS) {
@@ -135,6 +142,10 @@ export const usePetStore = defineStore('pet', () => {
     if (hunger.value >= 100) return
     hunger.value = Math.min(100, hunger.value + 30)
     energy.value = Math.max(0, energy.value - 5)
+    
+    // Add balanced experience when feeding
+    evolutionStore.addExperience(5, 'balanced')
+    
     updateStats()
     updateEmotion()
     save()
@@ -145,6 +156,9 @@ export const usePetStore = defineStore('pet', () => {
     happiness.value = Math.min(100, happiness.value + 20)
     energy.value = Math.max(0, energy.value - 20)
     hunger.value = Math.max(0, hunger.value - 10)
+    
+    // Add athletic experience when playing
+    evolutionStore.addExperience(10, 'athletic')
     
     // Check energy efficiency achievement when playing
     achievementsStore.checkEnergyEfficiency(energy.value)
@@ -157,6 +171,10 @@ export const usePetStore = defineStore('pet', () => {
   function sleep() {
     energy.value = Math.min(100, energy.value + 50)
     hunger.value = Math.max(0, hunger.value - 20)
+    
+    // Add balanced experience when sleeping
+    evolutionStore.addExperience(8, 'balanced')
+    
     updateStats()
     updateEmotion()
     save()
@@ -166,6 +184,10 @@ export const usePetStore = defineStore('pet', () => {
     if (health.value >= 100) return
     health.value = Math.min(100, health.value + 30)
     energy.value = Math.max(0, energy.value - 10)
+    
+    // Add intellectual experience when healing
+    evolutionStore.addExperience(15, 'intellectual')
+    
     updateStats()
     updateEmotion()
     save()

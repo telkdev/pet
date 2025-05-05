@@ -6,7 +6,19 @@ import router from './router';
 
 import { IonicVue } from '@ionic/vue';
 import { addIcons } from 'ionicons';
-import { trophy, ribbon, star, heart, diamond, medal, flash } from 'ionicons/icons';
+import { 
+  trophy, 
+  ribbon, 
+  star, 
+  heart, 
+  diamond, 
+  medal, 
+  flash,
+  barbellOutline,
+  bookOutline,
+  peopleOutline,
+  diamondOutline
+} from 'ionicons/icons';
 
 // Register Ionicons
 addIcons({
@@ -16,7 +28,11 @@ addIcons({
   'heart': heart,
   'diamond': diamond,
   'medal': medal,
-  'flash': flash
+  'flash': flash,
+  'barbell-outline': barbellOutline,
+  'book-outline': bookOutline,
+  'people-outline': peopleOutline,
+  'diamond-outline': diamondOutline
 });
 
 /* Core CSS required for Ionic components to work properly */

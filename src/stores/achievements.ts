@@ -221,13 +221,16 @@ export const useAchievementsStore = defineStore('achievements', () => {
     const storage = new Storage();
     await storage.create();
     
+    // Create a serializable state object
     const serializableState = {
       achievements: achievements.value.map(achievement => ({
         ...achievement,
-        unlockedAt: achievement.unlockedAt || null
+        unlockedAt: achievement.unlockedAt || null,
+        progress: Number(achievement.progress),
+        maxProgress: Number(achievement.maxProgress)
       })),
-      streak: streak.value,
-      lastDayInteracted: lastDayInteracted.value
+      streak: Number(streak.value),
+      lastDayInteracted: lastDayInteracted.value || null
     };
     
     await storage.set('achievementsState', JSON.parse(JSON.stringify(serializableState)));
