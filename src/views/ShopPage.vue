@@ -218,6 +218,46 @@ async function handleEquip(item: any) {
 <style scoped>
 ion-segment {
   margin-bottom: 1rem;
+  --background: var(--ion-color-light);
+}
+
+ion-segment-button {
+  --color: var(--ion-color-medium);
+  --color-checked: var(--ion-color-primary-contrast);
+  --indicator-color: var(--ion-color-primary);
+  /* Light theme adjustments for better contrast */
+  --background: transparent;
+  --background-checked: var(--ion-color-primary-shade);
+  --background-hover: rgba(var(--ion-color-primary-rgb), 0.1);
+  --color-hover: var(--ion-color-primary);
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+}
+
+ion-segment-button::part(indicator) {
+  background: var(--ion-color-primary-contrast);
+  border-radius: 2px;
+}
+
+ion-segment-button ion-label {
+  color: inherit;
+}
+
+ion-segment-button ion-icon {
+  color: inherit;
+}
+
+ion-item {
+  --color: var(--ion-text-color);
+}
+
+ion-item h2 {
+  color: var(--ion-text-color);
+  margin-bottom: 4px;
+}
+
+ion-item p {
+  color: var(--ion-color-medium);
 }
 
 .effect-tag {
@@ -227,6 +267,7 @@ ion-segment {
   border-radius: 4px;
   background: var(--ion-color-light);
   font-size: 0.8em;
+  color: var(--ion-color-dark);
 }
 
 ion-thumbnail {
@@ -255,22 +296,13 @@ ion-item-divider {
   margin-right: 16px;
 }
 
-.item-icon ion-icon {
+item-icon ion-icon {
   font-size: 24px;
   color: var(--ion-color-primary);
 }
 
-@media (prefers-color-scheme: dark) {
-  .effect-tag {
-    background: var(--ion-color-medium);
-  }
-
-  .item-icon {
-    background: var(--ion-color-medium);
-  }
-  
-  .item-icon ion-icon {
-    color: var(--ion-color-light);
-  }
+ion-chip {
+  --background: var(--ion-color-light);
+  --color: var(--ion-color-dark);
 }
 </style>

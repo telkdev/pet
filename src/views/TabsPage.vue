@@ -130,12 +130,6 @@ import { heart, statsChart, settings, cart } from 'ionicons/icons';
   transform: translateY(-2px);
 }
 
-@media (prefers-color-scheme: dark) {
-  .custom-tabs {
-    --background: rgba(var(--ion-color-light-rgb), 0.1);
-  }
-}
-
 /* Safe area padding for iOS devices */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .custom-tabs {

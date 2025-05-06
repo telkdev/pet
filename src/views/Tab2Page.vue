@@ -127,6 +127,7 @@
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonList, IonItem, 
          IonLabel, IonButton, IonIcon, IonProgressBar, alertController, IonListHeader,
          IonBadge } from '@ionic/vue';
+import { onMounted } from 'vue';
 import { pencil, barbellOutline, bookOutline, peopleOutline, diamondOutline } from 'ionicons/icons';
 import { usePetStore } from '@/stores/pet';
 import { useAchievementsStore } from '@/stores/achievements';
@@ -136,6 +137,14 @@ import type { EvolutionPath, EvolutionStage } from '@/stores/evolution';
 const petStore = usePetStore();
 const achievementsStore = useAchievementsStore();
 const evolutionStore = useEvolutionStore();
+
+onMounted(async () => {
+  await Promise.all([
+    petStore.initialize(),
+    achievementsStore.initialize(),
+    evolutionStore.initialize()
+  ]);
+});
 
 function getBadgeColor(level: string): string {
   switch (level) {

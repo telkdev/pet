@@ -85,17 +85,6 @@ import '@ionic/vue/css/text-transformation.css';
 import '@ionic/vue/css/flex-utils.css';
 import '@ionic/vue/css/display.css';
 
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
-
-/* @import '@ionic/vue/css/palettes/dark.always.css'; */
-/* @import '@ionic/vue/css/palettes/dark.class.css'; */
-import '@ionic/vue/css/palettes/dark.system.css';
-
 /* Theme variables */
 import './theme/variables.css';
 
@@ -104,7 +93,7 @@ const app = createApp(App)
   .use(IonicVue)
   .use(pinia)
   .use(router)
-  .use(MotionPlugin);  // Add Motion plugin
+  .use(MotionPlugin);
 
 // Initialize stores
 const itemsStore = useItemsStore(pinia)

@@ -32,8 +32,7 @@
 
           <!-- Equipped Items -->
           <div class="equipped-items">
-            <div v-for="item in equippedItems" :key="item.id" 
-                class="equipped-item" :class="[item.type]">
+            <div v-for="item in equippedItems" :key="item.id" class="equipped-item" :class="[item.type]">
               <ion-icon :icon="item.icon" />
             </div>
           </div>
@@ -63,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonContent, IonIcon, IonProgressBar, IonFabButton } from '@ionic/vue';
+import { IonPage, IonContent, IonIcon, IonProgressBar, IonFabButton, alertController } from '@ionic/vue';
 import { restaurant, playCircle, bed, medkit, happy, batteryFull as battery, heart } from 'ionicons/icons';
 import { usePetStore } from '@/stores/pet';
 import { onMounted, ref, computed } from 'vue';
@@ -73,6 +72,19 @@ const petStore = usePetStore();
 const petImage = ref(null);
 
 const equippedItems = computed(() => petStore.equippedItems);
+
+async function checkBirthday() {
+  const today = new Date();
+  const isBirthday = today.getMonth() === 4 && today.getDate() === 7; // May 7th
+  if (isBirthday) {
+    const alert = await alertController.create({
+      header: 'С днем рождения, киса',
+      cssClass: 'birthday-alert',
+      buttons: ['❤️']
+    });
+    await alert.present();
+  }
+}
 
 function getPetMessage() {
   switch (petStore.emotion) {
@@ -138,8 +150,9 @@ function handleHeal() {
   });
 }
 
-onMounted(() => {
-  petStore.initialize();
+onMounted(async () => {
+  await petStore.initialize();
+  await checkBirthday();
 });
 </script>
 
@@ -288,16 +301,6 @@ onMounted(() => {
   right: -8px;
 }
 
-@media (prefers-color-scheme: dark) {
-  .equipped-item {
-    background: rgba(var(--ion-color-medium-rgb), 0.9);
-  }
-
-  .equipped-item ion-icon {
-    color: var(--ion-color-light);
-  }
-}
-
 .action-buttons {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
@@ -344,17 +347,6 @@ ion-fab-button:active {
   }
 }
 
-/* Dark mode adjustments */
-@media (prefers-color-scheme: dark) {
-  .message-bubble {
-    background: rgba(var(--ion-color-light-rgb), 0.15);
-  }
-
-  .status-bar {
-    background: rgba(var(--ion-background-color-rgb), 0.9);
-  }
-}
-
 /* Responsive design for smaller screens */
 @media (max-width: 360px) {
   .pet-image-container {
@@ -370,5 +362,17 @@ ion-fab-button:active {
   ion-fab-button {
     --size: 40px;
   }
+}
+
+/* Birthday alert custom styles */
+::v-deep .birthday-alert {
+  --background: var(--ion-color-light);
+  --backdrop-opacity: 0.8;
+}
+
+::v-deep .birthday-alert .alert-title {
+  color: var(--ion-color-primary);
+  font-size: 1.5em;
+  text-align: center;
 }
 </style>
