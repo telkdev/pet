@@ -124,12 +124,15 @@ export const usePetStore = defineStore('pet', () => {
     const last = new Date(lastInteraction.value)
     const secondsPassed = (now.getTime() - last.getTime()) / 1000
     
-    hunger.value = Math.max(MIN_STAT, hunger.value - secondsPassed * 0.1)
-    happiness.value = Math.max(MIN_STAT, happiness.value - secondsPassed * 0.08)
-    energy.value = Math.max(MIN_STAT, energy.value - secondsPassed * 0.05)
+    // New depletion rates (per second):
+    // 100% / (24 hours * 3600 seconds) ≈ 0.00116 per second
+    hunger.value = Math.max(MIN_STAT, hunger.value - secondsPassed * 0.00116)
+    happiness.value = Math.max(MIN_STAT, happiness.value - secondsPassed * 0.00093)
+    energy.value = Math.max(MIN_STAT, energy.value - secondsPassed * 0.00058)
     
+    // Health only decreases when hunger or happiness is low
     if (hunger.value < 30 || happiness.value < 30) {
-      health.value = Math.max(MIN_STAT, health.value - secondsPassed * 0.1)
+      health.value = Math.max(MIN_STAT, health.value - secondsPassed * 0.00116)
     }
     
     // Apply effects from equipped items

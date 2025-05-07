@@ -78,7 +78,7 @@ async function checkBirthday() {
   const isBirthday = today.getMonth() === 4 && today.getDate() === 7; // May 7th
   if (isBirthday) {
     const alert = await alertController.create({
-      header: 'С днем рождения, киса',
+      header: 'С днем рождения, киса!',
       cssClass: 'birthday-alert',
       buttons: ['❤️']
     });
