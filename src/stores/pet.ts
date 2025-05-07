@@ -254,6 +254,14 @@ export const usePetStore = defineStore('pet', () => {
     save()
   }
 
+  function pet() {
+    happiness.value = Math.min(MAX_STAT, happiness.value + 10)
+    evolutionStore.addExperience(5, 'social')
+    updateStats()
+    updateEmotion()
+    save()
+  }
+
   return {
     name,
     hunger,
@@ -271,6 +279,7 @@ export const usePetStore = defineStore('pet', () => {
     play,
     sleep,
     heal,
+    pet,
     save,
     startLifeCycle,  // Expose for testing
     equippedItems,

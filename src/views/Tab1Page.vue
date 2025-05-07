@@ -27,7 +27,9 @@
         </div>
 
         <div class="pet-image-container" v-motion :initial="{ scale: 0.8, opacity: 0 }"
-          :enter="{ scale: 1, opacity: 1 }">
+          :enter="{ scale: 1, opacity: 1 }"
+          @click="handlePet"
+          @touchend.prevent="handlePet">
           <img :src="getPetImage()" alt="Pet" class="pet-image" ref="petImage" />
 
           <!-- Equipped Items -->
@@ -147,6 +149,21 @@ function handleHeal() {
     repeat: 1,
     ease: "power2.out",
     onComplete: () => petStore.heal()
+  });
+}
+
+function handlePet() {
+  // Create a heart bounce animation
+  gsap.to(petImage.value, {
+    scale: 1.2,
+    duration: 0.2,
+    yoyo: true,
+    repeat: 1,
+    ease: "power2.inOut",
+    onComplete: () => {
+      // Once animation completes, increase happiness
+      petStore.pet()
+    }
   });
 }
 
