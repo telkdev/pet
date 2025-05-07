@@ -280,8 +280,8 @@ onMounted(async () => {
 
 .equipped-item {
   position: absolute;
-  width: 32px;
-  height: 32px;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -292,30 +292,30 @@ onMounted(async () => {
 }
 
 .equipped-item ion-icon {
-  font-size: 20px;
+  font-size: 28px;
   color: var(--ion-color-primary);
 }
 
 .equipped-item.accessory {
-  top: -8px;
+  bottom: 100%;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .equipped-item.outfit {
   top: 50%;
-  left: -8px;
+  right: 100%;
   transform: translateY(-50%);
 }
 
 .equipped-item.decoration {
-  bottom: -8px;
-  right: -8px;
+  bottom: -12px;
+  right: -12px;
 }
 
 .equipped-item.background {
-  top: -8px;
-  right: -8px;
+  bottom: 100%;
+  left: 100%;
 }
 
 .action-buttons {
