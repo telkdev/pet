@@ -18,6 +18,7 @@ export const usePetStore = defineStore('pet', () => {
   const energy = ref(MAX_STAT)
   const health = ref(MAX_STAT)
   const lastInteraction = ref(new Date().toISOString())
+  const createdAt = ref(new Date().toISOString())
   const emotion = ref<Emotion>('happy')
   const isInitialized = ref(false)
   const error = ref<string | null>(null)
@@ -27,6 +28,13 @@ export const usePetStore = defineStore('pet', () => {
   const itemsStore = useItemsStore()
 
   const equippedItems = computed(() => itemsStore.equippedItems)
+  
+  const daysOld = computed(() => {
+    const now = new Date()
+    const created = new Date(createdAt.value)
+    const diffTime = Math.abs(now.getTime() - created.getTime())
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  })
 
   let cleanupLifeCycle: (() => void) | null = null
 
@@ -44,6 +52,7 @@ export const usePetStore = defineStore('pet', () => {
         health.value = Number(savedState.health)
         lastInteraction.value = savedState.lastInteraction
         emotion.value = savedState.emotion
+        createdAt.value = savedState.createdAt || new Date().toISOString() // Default to now if not saved
       }
       
       await Promise.all([
@@ -87,7 +96,8 @@ export const usePetStore = defineStore('pet', () => {
         energy: Math.min(MAX_STAT, Math.max(MIN_STAT, Number(energy.value))),
         health: Math.min(MAX_STAT, Math.max(MIN_STAT, Number(health.value))),
         lastInteraction: lastInteraction.value,
-        emotion: emotion.value
+        emotion: emotion.value,
+        createdAt: createdAt.value
       }
       
       await storage.set('petState', JSON.parse(JSON.stringify(serializableState)))
@@ -252,6 +262,7 @@ export const usePetStore = defineStore('pet', () => {
     health,
     lastInteraction,
     emotion,
+    daysOld,
     isInitialized,
     error,
     initialize,

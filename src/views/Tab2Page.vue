@@ -82,6 +82,13 @@
 
         <ion-item>
           <ion-label>
+            <h2>Pet Age</h2>
+            <p>{{ petStore.daysOld }} days old</p>
+          </ion-label>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>
             <h2>Last Interaction</h2>
             <p>{{ new Date(petStore.lastInteraction).toLocaleString() }}</p>
           </ion-label>
