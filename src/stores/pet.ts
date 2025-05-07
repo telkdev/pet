@@ -255,11 +255,15 @@ export const usePetStore = defineStore('pet', () => {
   }
 
   function pet() {
-    happiness.value = Math.min(MAX_STAT, happiness.value + 10)
-    evolutionStore.addExperience(5, 'social')
-    updateStats()
-    updateEmotion()
-    save()
+    happiness.value = Math.min(MAX_STAT, happiness.value + 10);
+    energy.value = Math.max(MIN_STAT, energy.value - 2);
+    
+    // Add social experience when petting
+    evolutionStore.addExperience(5, 'social');
+    
+    updateStats();
+    updateEmotion();
+    save();
   }
 
   return {

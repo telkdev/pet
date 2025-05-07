@@ -69,6 +69,7 @@ import { restaurant, playCircle, bed, medkit, happy, batteryFull as battery, hea
 import { usePetStore } from '@/stores/pet';
 import { onMounted, ref, computed } from 'vue';
 import gsap from 'gsap';
+import { useDebounceFn } from '@vueuse/core';
 
 const petStore = usePetStore();
 const petImage = ref(null);
@@ -152,7 +153,7 @@ function handleHeal() {
   });
 }
 
-function handlePet() {
+const handlePet = useDebounceFn(() => {
   // Create a heart bounce animation
   gsap.to(petImage.value, {
     scale: 1.2,
@@ -165,7 +166,7 @@ function handlePet() {
       petStore.pet()
     }
   });
-}
+}, 500); // 500ms debounce delay
 
 onMounted(async () => {
   await petStore.initialize();
